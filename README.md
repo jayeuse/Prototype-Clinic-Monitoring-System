@@ -39,9 +39,6 @@ This project is designed to monitor clinic operations efficiently using advanced
 1. git switch -c your-branch or git checkout -b your-branch (Follow Naming format)
 2. git switch your-branch or git checkout your-branch
 
-## Contribution
-Who Create This Project?
-
 ## License
 Specify the license (if any).
 
