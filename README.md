@@ -40,7 +40,7 @@ This project is designed to monitor clinic operations efficiently using advanced
 2. git switch your-branch or git checkout your-branch
 
 ## Contribution
-Who Create This Proiect?
+Who Create This Project?
 
 ## License
 Specify the license (if any).
