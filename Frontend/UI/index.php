@@ -1,3 +1,6 @@
+<?php
+  require_once '../../Backend/PHP/process.php';
+?>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -7,6 +10,5 @@
 </head>
 <body>
   <p>Hello World</p>
-  <p>Hello World 2</p>
 </body>
 </html>

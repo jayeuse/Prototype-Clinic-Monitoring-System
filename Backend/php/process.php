@@ -1,8 +1,13 @@
 <?php
 
-  echo "Hello World";
+  require_once 'config.php';
 
-  echo "<br>";
-  echo "Hello From VSCode";
+  // Create connection
+  $conn = new mysqli($host, $user, $pass, $db);
 
+  // Check connection
+  if ($conn->connect_error) {
+      die("❌ Connection failed: " . $conn->connect_error);
+  }
+  echo "✅ Connected successfully!";
 ?>
