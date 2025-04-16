@@ -13,7 +13,7 @@ This project is designed to monitor clinic operations efficiently using advanced
 - Feature 2: Description
 
 ## Installation
-1. Clone the repository: `git clone https://github.com/jayeuse/Prototype-Clinic-Monitoring-System.git`
+1. Clone the repository: `git clone https://github.com/jayeuse/Prototype-Clinic-Monitoring-System.git` and put the folder in C:\xampp\htdocs folder
 2. Navigate to the directory: `cd Prototype-Clinic-Monitoring-System
 3. Open your Apache Server from your XAMPP
 4. Access the Website through `/http://localhost/Prototype-Clinic-Monitoring-System/Frontend/UI/index.php`
@@ -38,9 +38,6 @@ This project is designed to monitor clinic operations efficiently using advanced
 ## Branch commands
 1. git switch -c your-branch or git checkout -b your-branch (Follow Naming format)
 2. git switch your-branch or git checkout your-branch
-
-## License
-Specify the license (if any).
 
 ## Contact
 For questions, contact [Your Name](mailto:your-email@example.com).
