@@ -63,8 +63,14 @@ CREATE TABLE Diagnoses (
     PatientID INT,
     StaffID INT,
     VisitLogID INT,
-    Symptoms TEXT,
     TreatmentPlanID INT
+);
+
+CREATE TABLE Symptoms (
+    SymptomID INT PRIMARY KEY AUTO_INCREMENT,
+    DiagnosisID INT,
+    SymptomDescription VARCHAR(255) NOT NULL,
+    FOREIGN KEY (DiagnosisID) REFERENCES Diagnoses(DiagnosisID) ON DELETE CASCADE
 );
 
 CREATE TABLE TreatmentPlan (
@@ -178,3 +184,135 @@ MODIFY TreatmentPlanID INT NOT NULL;
 ALTER TABLE PatientStaffAssignment
 MODIFY PatientID INT NOT NULL,
 MODIFY StaffID INT NOT NULL;
+
+ALTER TABLE PatientRegistration
+    DROP COLUMN Name,
+    ADD COLUMN LastName VARCHAR(50) NOT NULL,
+    ADD COLUMN FirstName VARCHAR(50) NOT NULL,
+    ADD COLUMN MiddleName VARCHAR(50) NOT NULL,
+    ADD COLUMN Suffix VARCHAR(10) NOT NULL;
+
+ALTER TABLE StaffRegistration
+    DROP COLUMN Name,
+    ADD COLUMN LastName VARCHAR(50) NOT NULL,
+    ADD COLUMN FirstName VARCHAR(50) NOT NULL,
+    ADD COLUMN MiddleName VARCHAR(50) NOT NULL,
+    ADD COLUMN Suffix VARCHAR(10) NOT NULL;
+
+CREATE VIEW view_PatientInformation AS
+SELECT
+    Patients.PatientID,
+    CONCAT_WS(' ', PatientRegistration.FirstName, PatientRegistration.MiddleName, PatientRegistration.LastName, PatientRegistration.Suffix) AS FullName,
+    PatientRegistration.StudentID,
+    PatientRegistration.Age,
+    PatientRegistration.Sex,
+    PatientRegistration.Birthdate,
+    CONCAT_WS(', ', PatientRegistration.UnitNo, PatientRegistration.Street, PatientRegistration.Baranggay, PatientRegistration.City) AS Address,
+    PatientRegistration.EmergencyContact
+FROM
+    Patients
+JOIN
+    PatientRegistration ON Patients.PatientRegistrationID = PatientRegistration.PatientRegistrationID;
+
+CREATE VIEW view_patientvisitlogs AS
+SELECT 
+    v.PatientID, 
+    v.Date, 
+    v.TimeIn, 
+    v.TimeOut,
+    v.ReasonForVisit,
+    CONCAT(sr.FirstName, ' ', sr.MiddleName, ' ', sr.LastName, ' ', sr.Suffix) AS StaffInCharge
+FROM 
+    VisitLogs v
+JOIN 
+    Diagnoses d ON v.VisitLogID = d.VisitLogID
+JOIN 
+    Staff s ON d.StaffID = s.StaffID
+JOIN 
+    StaffRegistration sr ON s.StaffRegistrationID = sr.StaffRegistrationID;
+
+CREATE VIEW view_patientclinicalsummary AS
+SELECT 
+    p.PatientID,
+    d.ConfirmedDiagnosis,
+    vl.Date AS DateOfDiagnosis, 
+    GROUP_CONCAT(s.SymptomDescription SEPARATOR ', ') AS IdentifiedSymptoms,
+    GROUP_CONCAT(m.MedicineName, ' (', m.Dosage, ')' SEPARATOR ', ') AS PrescribedMedications,
+    GROUP_CONCAT(lr.Recommendations SEPARATOR ', ') AS RecommendedLifestyles,
+    CONCAT(sr.FirstName, ' ', sr.MiddleName, ' ', sr.LastName, ' ', sr.Suffix) AS ConsultingPhysician 
+FROM 
+    Patients p
+JOIN 
+    Diagnoses d ON p.PatientID = d.PatientID
+JOIN 
+    VisitLogs vl ON d.VisitLogID = vl.VisitLogID
+JOIN 
+    Symptoms s ON s.DiagnosisID = d.DiagnosisID
+JOIN 
+    Medications m ON m.TreatmentPlanID = d.TreatmentPlanID
+JOIN 
+    LifestyleRecommendations lr ON lr.TreatmentPlanID = d.TreatmentPlanID
+JOIN 
+    Staff st ON d.StaffID = st.StaffID
+JOIN 
+    StaffRegistration sr ON st.StaffRegistrationID = sr.StaffRegistrationID
+GROUP BY 
+    p.PatientID, d.ConfirmedDiagnosis, vl.Date, sr.FirstName, sr.MiddleName, sr.LastName, sr.Suffix;
+
+CREATE VIEW view_patient_all_clinical_summaries AS
+SELECT 
+    p.PatientID,  
+    d.ConfirmedDiagnosis,  
+    vl.Date AS DateOfDiagnosis, 
+    GROUP_CONCAT(s.SymptomDescription SEPARATOR ', ') AS IdentifiedSymptoms,  (concatenated if multiple)
+    GROUP_CONCAT(m.MedicineName, ' (', m.Dosage, ')' SEPARATOR ', ') AS PrescribedMedications,  
+    GROUP_CONCAT(lr.Recommendations SEPARATOR ', ') AS RecommendedLifestyles,  
+    CONCAT(sr.FirstName, ' ', sr.MiddleName, ' ', sr.LastName, ' ', sr.Suffix) AS ConsultingPhysician 
+FROM 
+    Patients p
+JOIN 
+    Diagnoses d ON p.PatientID = d.PatientID
+JOIN 
+    VisitLogs vl ON d.VisitLogID = vl.VisitLogID
+JOIN 
+    Symptoms s ON s.DiagnosisID = d.DiagnosisID  
+JOIN 
+    Medications m ON m.TreatmentPlanID = d.TreatmentPlanID  
+JOIN 
+    LifestyleRecommendations lr ON lr.TreatmentPlanID = d.TreatmentPlanID  
+JOIN 
+    Staff st ON d.StaffID = st.StaffID  
+JOIN 
+    StaffRegistration sr ON st.StaffRegistrationID = sr.StaffRegistrationID  
+GROUP BY 
+    p.PatientID, d.ConfirmedDiagnosis, vl.Date, sr.FirstName, sr.MiddleName, sr.LastName, sr.Suffix;
+
+CREATE VIEW view_patient_latest_clinical_summary AS
+SELECT 
+    p.PatientID,  
+    d.ConfirmedDiagnosis,  
+    vl.Date AS DateOfDiagnosis,  
+    GROUP_CONCAT(s.SymptomDescription SEPARATOR ', ') AS IdentifiedSymptoms,  -
+    GROUP_CONCAT(m.MedicineName, ' (', m.Dosage, ')' SEPARATOR ', ') AS PrescribedMedications,  
+    GROUP_CONCAT(lr.Recommendations SEPARATOR ', ') AS RecommendedLifestyles, 
+    CONCAT(sr.FirstName, ' ', sr.MiddleName, ' ', sr.LastName, ' ', sr.Suffix) AS ConsultingPhysician  
+FROM 
+    Patients p
+JOIN 
+    Diagnoses d ON p.PatientID = d.PatientID
+JOIN 
+    VisitLogs vl ON d.VisitLogID = vl.VisitLogID
+JOIN 
+    Symptoms s ON s.DiagnosisID = d.DiagnosisID 
+JOIN 
+    Medications m ON m.TreatmentPlanID = d.TreatmentPlanID  
+JOIN 
+    LifestyleRecommendations lr ON lr.TreatmentPlanID = d.TreatmentPlanID  
+JOIN 
+    Staff st ON d.StaffID = st.StaffID  
+JOIN 
+    StaffRegistration sr ON st.StaffRegistrationID = sr.StaffRegistrationID  
+WHERE 
+    vl.Date = (SELECT MAX(Date) FROM VisitLogs WHERE PatientID = p.PatientID)  
+GROUP BY 
+    p.PatientID, d.ConfirmedDiagnosis, vl.Date, sr.FirstName, sr.MiddleName, sr.LastName, sr.Suffix;
